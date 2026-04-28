@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Connection Space</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            margin: 0; padding: 0; background: #050505; color: white;
+            font-family: 'SF Pro Display', -apple-system, sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow-y: auto; padding: 40px 0;
+        }
+
+        .background-blobs {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: radial-gradient(circle at 50% 50%, #1a0033 0%, #050505 100%);
+        }
+
+        .blob {
+            position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.25;
+            animation: move 20s infinite alternate ease-in-out;
+        }
+        .b1 { width: 400px; height: 400px; background: #6a00f4; top: -10%; left: -10%; }
+        .b2 { width: 350px; height: 350px; background: #ff2d55; bottom: -5%; right: -5%; }
+
+        @keyframes move { from { transform: translate(0, 0); } to { transform: translate(100px, 50px); } }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px; padding: 45px;
+            width: 90%; max-width: 500px; text-align: center;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+        }
+
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+
+        .stat-item {
+            padding: 22px; background: rgba(255, 255, 255, 0.04);
+            border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .full-width { grid-column: span 2; }
+
+        .number {
+            display: block; font-size: 2.6rem; font-weight: 800; margin-bottom: 5px;
+            background: linear-gradient(45deg, #ff2d55, #ff7171);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .blue { background: linear-gradient(45deg, #00f2ff, #007aff); -webkit-background-clip: text; }
+        .gold { background: linear-gradient(45deg, #ffd700, #ff9500); -webkit-background-clip: text; }
+
+        .label { font-size: 0.65rem; font-weight: 600; opacity: 0.4; text-transform: uppercase; letter-spacing: 1.2px; }
+
+        .miss-you-btn {
+            width: 100%; padding: 22px; margin-top: 5px;
+            background: linear-gradient(45deg, #ff2d55, #ff7171);
+            border: none; border-radius: 24px; color: white;
+            font-size: 1.1rem; font-weight: 700; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(255, 45, 85, 0.3);
+        }
+
+        .miss-you-btn:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 15px 35px rgba(255, 45, 85, 0.5); }
+        .miss-you-btn:active { transform: scale(0.96); }
+
+        .chart-container {
+            margin-top: 40px; background: rgba(255, 255, 255, 0.02);
+            border-radius: 28px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        h2 { font-size: 0.8rem; font-weight: 400; opacity: 0.4; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px; }
+    </style>
+</head>
+<body>
+
+    <div class="background-blobs">
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+    </div>
+
+    <div class="glass-card">
+        <div class="stat-grid">
+            <div class="stat-item">
+                <span id="word-count" class="number">0</span>
+                <span class="label">Слов нежности</span>
+            </div>
+            <div class="stat-item">
+                <span id="days-count" class="number blue">0</span>
+                <span class="label">Дней вместе</span>
+            </div>
+            <div class="stat-item full-width">
+                <span id="bridge-count" class="number gold">0</span>
+                <span class="label">Километров моста</span>
+            </div>
+        </div>
+
+        <button class="miss-you-btn" onclick="sendMissYou()">❤️ Я скучаю</button>
+
+        <div class="chart-container">
+            <h2>Кардиограмма общения</h2>
+            <canvas id="activityChart"></canvas>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        function sendMissYou() {
+            const botToken = '8755491235:AAHSIbbjmEpwIVTtQg3sydnxWnS0grDUlZk';
+            const message = 'Тут по тебе очень скучают... ❤️';
+            
+            // Отправляем сразу двум
+            const chatIds = ['54412874', '8128735268']; 
+
+            const btn = document.querySelector('.miss-you-btn');
+            btn.style.transform = 'scale(0.95)';
+
+            Promise.all(chatIds.map(id => {
+                const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${id}&text=${encodeURIComponent(message)}`;
+                return fetch(url);
+            }))
+            .then(responses => {
+                if (responses.some(r => r.ok)) {
+                    btn.innerHTML = 'Сигналы отправлены! ✨';
+                    btn.style.background = 'linear-gradient(45deg, #28cd41, #54e1b6)';
+                    btn.style.transform = 'scale(1)';
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = '❤️ Я скучаю';
+                        btn.style.background = 'linear-gradient(45deg, #ff2d55, #ff7171)';
+                    }, 3000);
+                } else {
+                    btn.innerHTML = 'Нажми START в боте ❌';
+                    btn.style.transform = 'scale(1)';
+                }
+            })
+            .catch(() => {
+                btn.innerHTML = 'Ошибка сети 🌐';
+                btn.style.transform = 'scale(1)';
+            });
+        }
+
+        function animateValue(id, end, duration) {
+            const obj = document.getElementById(id);
+            if (!obj || isNaN(end)) return;
+            let start = null;
+            const step = (ts) => {
+                if (!start) start = ts;
+                const progress = Math.min((ts - start) / duration, 1);
+                obj.innerHTML = Math.floor(progress * end).toLocaleString('ru-RU');
+                if (progress < 1) window.requestAnimationFrame(step);
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof chatData !== 'undefined') {
+                animateValue('word-count', chatData.love_total, 2000);
+                animateValue('bridge-count', chatData.bridge_km, 2500);
+                
+                // Твоя дата (поменяй на свою, если нужно)
+                const startDate = new Date("2024-01-01"); 
+                const diff = Math.ceil(Math.abs(new Date() - startDate) / 86400000);
+                animateValue('days-count', diff, 1500);
+
+                const ctx = document.getElementById('activityChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                        datasets: [{
+                            data: chatData.hourly_data,
+                            borderColor: '#ff2d55',
+                            backgroundColor: 'rgba(255, 45, 85, 0.1)',
+                            fill: true, tension: 0.4, pointRadius: 0, borderWidth: 3
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false } },
+                        scales: { 
+                            y: { display: false }, 
+                            x: { ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 9 } }, grid: { display: false } } 
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
